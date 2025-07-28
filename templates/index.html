@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Delhi House Price Prediction</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-light: #f2f2f2;
+            --bg-dark: #121212;
+            --text-light: #000;
+            --text-dark: #fff;
+            --card-light: rgba(255, 255, 255, 0.9);
+            --card-dark: rgba(30, 30, 30, 0.9);
+            --primary: #4CAF50;
+            --secondary: #eefdf0;
+        }
+
+        body {
+            zoom: 90%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #e0f7fa, #fce4ec);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-light);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            color: var(--text-dark);
+        }
+
+        @keyframes gradientBG {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background: var(--card-light);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.18);
+            transition: background 0.3s ease;
+        }
+
+        body.dark .form-container {
+            background: var(--card-dark);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--primary);
+            animation: fadeSlide 1s ease-in-out;
+        }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            transition: border-color 0.3s;
+        }
+
+        body.dark input, body.dark select {
+            background-color: #1f1f1f;
+            color: white;
+            border: 1px solid #555;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .radio-group {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="radio"] {
+            accent-color: var(--primary);
+            transform: scale(1.2);
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #388e3c;
+            transform: scale(1.02);
+        }
+
+        .result {
+            font-size: 1.5em;
+            color: var(--primary);
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .toggle-theme {
+            text-align: right;
+            margin: 10px 20px;
+        }
+
+        .toggle-theme button {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: inherit;
+        }
+
+        @media screen and (max-width: 600px) {
+            .radio-group {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toggle-theme">
+        <button onclick="toggleTheme()" title="Toggle Light/Dark Mode">
+            <span id="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <div class="form-container">
+        <h2>Delhi House Price Prediction</h2>
+        <form action="/predict" method="post">
+            <label for="bhk">BHK:</label>
+            <input type="number" name="bhk" required value="{{ request.form.get('bhk', '') }}">
+
+            <label for="area">Area (Sq.ft.):</label>
+            <input type="number" name="area" required value="{{ request.form.get('area', '') }}">
+
+            <label>Property Type:</label>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="individual house" value="1"
+                        {% if request.form.get('individual house') == '1' %}checked{% endif %}> Individual House
+                </label>
+                <label>
+                    <input type="radio" name="individual house" value="0"
+                        {% if request.form.get('individual house') == '0' %}checked{% endif %}> Flat
+                </label>
+            </div>
+
+            <label for="location">Location:</label>
+            <select name="location" required>
+                {% for loc in locations %}
+                    <option value="{{ loc }}"
+                        {% if request.form.get('location') == loc %}selected{% endif %}>
+                        {{ loc }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <input type="submit" value="Predict">
+        </form>
+
+        {% if prediction_text %}
+        <div class="result">{{ prediction_text }}</div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Toggle light/dark mode
+        const icon = document.getElementById("theme-icon");
+        const theme = localStorage.getItem("theme");
+
+        if (theme === "dark") {
+            document.body.classList.add("dark");
+            icon.textContent = "☀️";
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle("dark");
+            const isDark = document.body.classList.contains("dark");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            icon.textContent = isDark ? "☀️" : "🌙";
+        }
+    </script>
+</body>
+</html>
