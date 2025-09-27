@@ -27,7 +27,7 @@ def predict():
         ind_house = int(request.form['individual house'])
         location = request.form['location'].lower()
 
-        x = np.zeros(len(data_columns))
+        x = np.zeros(len(data_columns)-1)
         x[0] = bhk
         x[1] = area
         x[2] = ind_house
